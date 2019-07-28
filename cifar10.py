@@ -48,5 +48,5 @@ def main(net):
     model.fit_generator(datagen.flow(x_train, y_train, batch_size=32),
                         validation_data=(x_test, y_test),
                         epochs=200,
-                        callbacks=[ReduceLROnPlateau(verbose=1),
+                        callbacks=[ReduceLROnPlateau(verbose=1, patience=20),
                                    TensorBoard(observer.dir)])
