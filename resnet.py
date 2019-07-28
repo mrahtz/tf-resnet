@@ -1,8 +1,8 @@
 import re
 from tensorflow.python.keras import Sequential
-from tensorflow.python.keras.layers import BatchNormalization, Activation, GlobalAveragePooling2D, Dense
+from tensorflow.python.keras.layers import GlobalAveragePooling2D, Dense, Conv2D
 
-from layers import Conv2DPadReg, ResidualBlock
+from layers import ConvBNRelu, ConvBNReluResidualBlock, ConvBNReluBlock
 
 
 def make_resnet(net):
@@ -12,44 +12,31 @@ def make_resnet(net):
     n = (int(n_layers) - 2) // 6
     print("Net: detected n = {} {} shortcuts".format(n, 'with' if residual else 'without'))
 
-    layers = []
-    filters = {
-        0: 16,
-        1: 32,
-        2: 64
-    }
+    Block = ConvBNReluResidualBlock if residual else ConvBNReluBlock
+    _layers = [
+        ConvBNRelu(strides=1, filters=16, input_shape=(32, 32, 3)),
 
-    def strides(section_n, block_n, block_idx):
-        if section_n >= 1 and block_n == 0 and block_idx == 0:
-            return 2
-        else:
-            return 1
+        Block(strides=1, filters=16),
+        [Block(strides=1, filters=16) for _ in range(n - 1)],
 
-    layers.extend([
-        Conv2DPadReg(kernel_size=3, filters=16, input_shape=(32, 32, 3)),
-        BatchNormalization(),
-        Activation('relu')
-    ])
-    for section_n in range(3):
-        for block_n in range(n):
-            block = [
-                [
-                    Conv2DPadReg(kernel_size=3,
-                                 filters=filters[section_n],
-                                 strides=strides(section_n, block_n, i)),
-                    BatchNormalization(),
-                    Activation('relu'),
-                ] for i in range(2)
-            ]
-            block = [x for l in block for x in l]
-            if residual:
-                layers.append(ResidualBlock(block))
-            else:
-                layers.extend(block)
-    layers.extend([
+        Block(strides=2, filters=32),
+        [Block(strides=1, filters=32) for _ in range(n - 1)],
+
+        Block(strides=2, filters=64),
+        [Block(strides=1, filters=64) for _ in range(n - 1)],
+
         GlobalAveragePooling2D(),
         Dense(10, 'softmax')
-    ])
+    ]
+
+    layers = []
+    for x in _layers:
+        try:
+            for l in x:
+                layers.append(l)
+        except TypeError:
+            layers.append(x)
+
     model = Sequential(layers)
     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['acc'])
     return model

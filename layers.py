@@ -1,34 +1,68 @@
-from functools import partial
-
 import tensorflow as tf
-from tensorflow.python.keras.layers import Activation, Conv2D
+from tensorflow.python.keras import Sequential, Model
+from tensorflow.python.keras.layers import Activation, Conv2D, BatchNormalization
 from tensorflow.python.keras.regularizers import l2
-from tensorflow.python.layers.base import Layer
-
-Conv2DPadReg = partial(Conv2D, padding='same', kernel_regularizer=l2(1e-4))
 
 
-class ResidualBlock(Layer):
-    def __init__(self, layers):
+class ConvBNRelu(Sequential):
+    def __init__(self, filters, strides, skip_relu=False, input_shape=None):
+        conv2d_kwargs = {'input_shape': input_shape} if input_shape is not None else {}
+        layers = [
+            Conv2D(kernel_size=3, filters=filters, strides=strides,
+                   padding='same', kernel_regularizer=l2(1e-4), **conv2d_kwargs),
+            BatchNormalization(),
+        ]
+        if not skip_relu:
+            layers.append(Activation('relu'))
+        super().__init__(layers)
+
+
+class ResidualBlock(Model):
+    def __init__(self, layers, activation):
         super().__init__()
-        assert isinstance(layers[-1], Activation)
-        self.layers = layers
+        self._layers = layers
+        self.activation = activation
+        self._called = False
 
-    def call(self, x, **kwargs):
-        y = x
-        for layer in self.layers[:-1]:
-            y = layer(y)
-        if x.shape.as_list() != y.shape.as_list():
-            x = self._reshape(x, y.shape.as_list())
-        out = tf.add(x, y)
-        out = self.layers[-1](out)  # Activation
-        return out
+    def call(self, inputs, **kwargs):
+        # We should create the reshape ops in init(), but we're lazy and just do everything in call(),
+        # so we should be careful to avoid being called more than once
+        assert not self._called
 
-    def _reshape(self, x, y_shape):
+        x = inputs
+        for layer in self._layers:
+            x = layer(x)
+        if inputs.shape.as_list() != x.shape.as_list():
+            inputs = self._reshape(inputs, x.shape.as_list())
+        x = tf.add(inputs, x)
+        x = Activation(self.activation)(x)
+
+        self._called = True
+        return x
+
+    def _reshape(self, inputs, x_shape):
         # Downsample feature map by dropping pixels
         # Upsample channels using a learned transformation
-        size_in, size_out = x.shape.as_list()[1], y_shape[1]
+        size_in, size_out = inputs.shape.as_list()[1], x_shape[1]
         downsample = size_in // size_out
-        n_channels = y_shape[3]
-        x = Conv2D(kernel_size=1, filters=n_channels, strides=downsample)(x)
-        return x
+        n_channels = x_shape[3]
+        inputs = Conv2D(kernel_size=1, filters=n_channels, strides=downsample)(inputs)
+        return inputs
+
+
+class ConvBNReluResidualBlock(ResidualBlock):
+    def __init__(self, filters, strides):
+        layers = [
+            ConvBNRelu(filters=filters, strides=strides),
+            ConvBNRelu(filters=filters, strides=strides, skip_relu=False),
+        ]
+        super().__init__(layers, activation='relu')
+
+
+class ConvBNReluBlock(Sequential):
+    def __init__(self, filters, strides):
+        layers = [
+            ConvBNRelu(filters=filters, strides=strides),
+            ConvBNRelu(filters=filters, strides=strides)
+        ]
+        super().__init__(layers)
