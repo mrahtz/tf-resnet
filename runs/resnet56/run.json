@@ -1,0 +1,84 @@
+{
+  "artifacts": [],
+  "command": "main",
+  "experiment": {
+    "base_dir": "/home/matthew/resnets",
+    "dependencies": [
+      "numpy==1.17.0",
+      "sacred==0.7.5",
+      "tensorflow-gpu==1.13.1"
+    ],
+    "mainfile": "cifar10.py",
+    "name": "cifar10",
+    "repositories": [],
+    "sources": [
+      [
+        "cifar10.py",
+        "_sources/cifar10_b1deaf93114fdd7ba819f1cd93f26d51.py"
+      ],
+      [
+        "resnet.py",
+        "_sources/resnet_67ecce94d2a0ad7d429f9ba404e9b28b.py"
+      ],
+      [
+        "utils.py",
+        "_sources/utils_8f4c5ef10fae2c179b6777dd63211fc8.py"
+      ]
+    ]
+  },
+  "heartbeat": "2019-07-29T05:22:03.736157",
+  "host": {
+    "ENV": {},
+    "cpu": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+    "gpus": {
+      "driver_version": "410.104",
+      "gpus": [
+        {
+          "model": "Tesla P100-PCIE-16GB",
+          "persistence_mode": false,
+          "total_memory": 16280
+        }
+      ]
+    },
+    "hostname": "gpufish-pe",
+    "os": [
+      "Linux",
+      "Linux-4.9.0-9-amd64-x86_64-with-debian-9.9"
+    ],
+    "python_version": "3.5.3"
+  },
+  "meta": {
+    "command": "main",
+    "options": {
+      "--beat_interval": null,
+      "--capture": null,
+      "--comment": null,
+      "--debug": false,
+      "--enforce_clean": false,
+      "--file_storage": null,
+      "--force": false,
+      "--help": false,
+      "--loglevel": null,
+      "--mongo_db": null,
+      "--name": null,
+      "--pdb": false,
+      "--print_config": false,
+      "--priority": null,
+      "--queue": false,
+      "--sql": null,
+      "--tiny_db": null,
+      "--unobserved": false,
+      "COMMAND": null,
+      "UPDATE": [
+        "net=resnet56"
+      ],
+      "help": false,
+      "with": true
+    }
+  },
+  "resources": [],
+  "result": null,
+  "start_time": "2019-07-28T19:25:07.014759",
+  "status": "COMPLETED",
+  "stop_time": "2019-07-29T05:22:03.670142"
+}
