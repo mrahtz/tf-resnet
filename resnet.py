@@ -11,16 +11,16 @@ def make_resnet(net):
 
     Block = ConvBNReluResidualBlock if residual else ConvBNReluBlock
     layers = [
-        ConvBNRelu(strides=1, filters=16, input_shape=(32, 32, 3)),
+        ConvBNRelu(strides=1, kernel_size=3, filters=16, input_shape=(32, 32, 3)),
 
-        Block(strides=1, filters=16),
-        [Block(strides=1, filters=16) for _ in range(n - 1)],
+        Block(strides=1, kernel_size=3, filters=16),
+        [Block(strides=1, kernel_size=3, filters=16) for _ in range(n - 1)],
 
-        Block(strides=2, filters=32),
-        [Block(strides=1, filters=32) for _ in range(n - 1)],
+        Block(strides=2, kernel_size=3, filters=32),
+        [Block(strides=1, kernel_size=3, filters=32) for _ in range(n - 1)],
 
-        Block(strides=2, filters=64),
-        [Block(strides=1, filters=64) for _ in range(n - 1)],
+        Block(strides=2, kernel_size=3,  filters=64),
+        [Block(strides=1, kernel_size=3, filters=64) for _ in range(n - 1)],
 
         GlobalAveragePooling2D(),
         Dense(10, 'softmax')

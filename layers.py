@@ -5,10 +5,10 @@ from tensorflow.python.keras.regularizers import l2
 
 
 class ConvBNRelu(Sequential):
-    def __init__(self, filters, strides, skip_relu=False, input_shape=None):
+    def __init__(self, filters, kernel_size, strides, skip_relu=False, input_shape=None):
         conv2d_kwargs = {'input_shape': input_shape} if input_shape is not None else {}
         layers = [
-            Conv2D(kernel_size=3, filters=filters, strides=strides,
+            Conv2D(filters=filters, kernel_size=kernel_size, strides=strides,
                    padding='same', kernel_regularizer=l2(1e-4), **conv2d_kwargs),
             BatchNormalization(),
         ]
@@ -51,18 +51,18 @@ class ResidualBlock(Model):
 
 
 class ConvBNReluResidualBlock(ResidualBlock):
-    def __init__(self, filters, strides):
+    def __init__(self, filters, kernel_size, strides):
         layers = [
-            ConvBNRelu(filters=filters, strides=strides),
-            ConvBNRelu(filters=filters, strides=strides, skip_relu=False),
+            ConvBNRelu(filters=filters, kernel_size=kernel_size, strides=strides),
+            ConvBNRelu(filters=filters, kernel_size=kernel_size, strides=strides, skip_relu=False),
         ]
         super().__init__(layers, activation='relu')
 
 
 class ConvBNReluBlock(Sequential):
-    def __init__(self, filters, strides):
+    def __init__(self, filters, kernel_size, strides):
         layers = [
-            ConvBNRelu(filters=filters, strides=strides),
-            ConvBNRelu(filters=filters, strides=strides)
+            ConvBNRelu(filters=filters, kernel_size=kernel_size, strides=strides),
+            ConvBNRelu(filters=filters, kernel_size=kernel_size, strides=strides)
         ]
         super().__init__(layers)
